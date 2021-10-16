@@ -15,17 +15,17 @@ int text_init(struct Text* text)
 
     text->buffer = (char*)calloc(text->file_size + 1, sizeof(char));
     text->buffer[text->file_size] = '\0';
-    printf("%d\n", text->file_size);
     int t = fread((void*)text->buffer, sizeof(char), text->file_size, file);
-    printf("%d\n", t);
     fflush(stdout);
+
     printf("%s\n", text->buffer);
     text->n_strings = count_strings(text);
- /*   text->strings = (struct String*) calloc(text->n_strings, sizeof(struct String));*/
+    text->strings = (struct String*)calloc(text->n_strings, sizeof(struct String));
 
-    // text->n_strings = serarate_to_strings(text);
+    serarate_to_strings(text);
+ /*   printf("sym1 = %c sym2 = %c size = %d\n\n\n", text->strings->start[0], (text->strings->start + 1)[0], sizeof(struct String));
 
-    return EXIT_SUCCESS;
+    return EXIT_SUCCESS;*/
 }
 
 int get_file_size(size_t* k_bytes, FILE* file)
@@ -63,22 +63,23 @@ int read_from_file(char* buffer, size_t k_bytes, FILE* file)
 }
 
 
-//int serarate_to_strings(struct index_size* index, char* buffer, int maxlen)
-//
 int serarate_to_strings(struct Text* text)
 {
     int k_lines = 0, current_position = 0; // strchr || strtok
-    printf("%p",text->buffer);
+
     while(((text->strings + k_lines)->length = my_getline2(text->buffer + current_position)) != 0 ){
-        printf("1");
+
         (text->strings + k_lines)->start = text->buffer + current_position;
 
         current_position += (text->strings + k_lines)->length;
 
-        printf("len = %d, pointer = %p, c=%c\n", (text->strings + k_lines)->length, (text->strings + k_lines)->start, *((text->strings + k_lines)->start));
+        printf("len = %d, k_lines = %d pointer = %p, c=%c\n", (text->strings + k_lines)->length, k_lines, (text->strings + k_lines)->start, *((text->strings + k_lines)->start));
+
         k_lines++;
     }
-    return k_lines;
+    for(k_lines = 0; k_lines < 8; k_lines++)
+        printf("len8 = %d, pointer = %p, c=%c\n", (text->strings + k_lines)->length, (text->strings + k_lines)->start, *((text->strings + k_lines)->start));
+    return 0;
 }
 
 int count_strings(struct Text* text)
@@ -88,22 +89,20 @@ int count_strings(struct Text* text)
        // printf("in = %d\n", index);
         fflush(stdout);
         printf("%c ", text->buffer[index]);
-        if(text->buffer[index] == '\n')
-            k_lines++;
+        if(text->buffer[index] == '\n') {
+              k_lines++;
+        }
     }
     return k_lines;
 }
 
-// fix while function
-// use putc pprin back to file
-// out pointer to start of the line
+
 int my_getline2(char* buffer)
 {
     int symbol = 0, length = 0;
 
     assert(buffer != NULL);
 
-    //char * strchr( const char * string, int symbol);
     char* line_end = strchr(buffer, '\n');
     char* file_end = strchr(buffer, '\0');
     if(buffer == file_end)
@@ -115,8 +114,8 @@ int my_getline2(char* buffer)
     return length;
 }
 
-// write comparator
-int sort_file(struct Text* text) // void* index
+
+int sort_file(struct Text* text)
 {
     int n_index = 0;
     char* temp = NULL;
@@ -135,47 +134,60 @@ int sort_file(struct Text* text) // void* index
                 n_sym1 = n_sym2 = 0;
                 printf("iters = %d  index = %d\n", k_iters, n_index);
                 if(comparator(text->strings + n_index, text->strings + n_index + 1) == 1){
-                    temp = (text->strings + n_index)->start;
+                     temp = (text->strings + n_index)->start;
                     (text->strings + n_index)->start = (text->strings + n_index + 1)->start;
                     (text->strings + n_index + 1)->start = temp;
 
                     help = (text->strings + n_index)->length;
                     (text->strings + n_index)->length = (text->strings + n_index + 1)->length;
                     (text->strings + n_index + 1)->length = help;
-                    printf("iters = %d  index = %d %s %s\n", k_iters, n_index, (text->strings + n_index)->start, (text->strings + n_index + 1)->start);
+                    printf("2 iters = %d  index = %d str1 = %s str2 = %s\n", k_iters, n_index, (text->strings + n_index)->start, (text->strings + n_index + 1)->start);
                 }
+                printf("777777\n");
+                fflush(stdout);
+        }
+        char c;
+        int u;
+        printf("\n");
+        for(int y = 0; y < text->n_strings; y++){
+            printf("\nstr:");
+            for(u = 0; u < (text->strings + y)->length; u++){
+                printf("%c", (text->strings + y)->start[u]);
+            }
 
-        }printf("999999");
-    }printf("777777");
+        }
+        //printf("str: %s\n\n", (text->strings)->start);
+        //printf("48989565656565\n");
+    }
     return EXIT_SUCCESS;
 }
 
-//int comparator(struct Text* text, int n_index)  //cost void* const void*
+
 int comparator(const void* str1, const void* str2)
 {
     printf("comp555\n");
+    struct String* string1 = (struct String*) str1;
+    struct String* string2 = (struct String*) str2;
     int n_sym1 = 0, n_sym2 = 0;
     char sym1 = '\0', sym2 = '\0';
-
-    str1 = (int*)str1;
-    str2 = (int*)str2;
-
-    sym1 = str1[0];
-    sym2 = str2[0];
+    printf("string = %p %s str2 = %s\n", string1->start, string1->start, string2->start);
+    sym1 = string1->start[0];
+    sym2 = string2->start[0];
 
     //while(n_sym1 <= (text->strings + n_index)->length && n_sym2 <= (text->strings + n_index + 1)->length){
     while(sym1 != '\n' && sym2 != '\n'){
 
         while(isalnum(sym1) == 0){ // ctype.h
             n_sym1++;
-            sym1 = str1[n_sym2];
+            sym1 = string1->start[n_sym1];
         }
 
         while(isalnum(sym2) == 0){
             n_sym2++;
-            sym2 = str2[n_sym2];
+            sym2 = string2->start[n_sym2];
         }
-
+        //printf("sym1 = %c sym2 = %c\n", sym1, sym2);
+        //fflush(stdout);
         if (sym1 > sym2)
             return 1;
 
@@ -183,16 +195,21 @@ int comparator(const void* str1, const void* str2)
             n_sym1++;
             n_sym2++;
         }
-        else
+        else{
+            //printf("<\n");
+            //fflush(stdout);
             return -1;
+        }
 
-        sym1 = str1[n_sym1];
-        sym2 = str2[n_sym2];
+
+        sym1 = string1->start[n_sym1];
+        sym2 = string2->start[n_sym2];
     }
+
     return 0;
 }
 
-int write_new_file(struct Text* text, const char* name)
+/*int write_new_file(struct Text* text, const char* name)
 {
     printf("55\n");
     printf("%s\n",name);
@@ -219,9 +236,9 @@ int write_new_file(struct Text* text, const char* name)
     fclose(new_file);
     printf("55");
     return EXIT_SUCCESS;
-}
+}*/
 
-int reverse_sort_file(struct Text* text) // void* index
+/*int reverse_sort_file(struct Text* text) // void* index
 {
     int n_index = 0;
     char* temp = NULL;

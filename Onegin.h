@@ -15,7 +15,7 @@ struct String { // String
  struct Text {
      struct String* strings;
      size_t file_size = NULL;
-     int n_strings = 0;
+     int n_strings;
      char* file_name;
      char* buffer = NULL;
  };
